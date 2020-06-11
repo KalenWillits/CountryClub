@@ -78,14 +78,14 @@ the guest user's ID is always 0. Include in your output the name of the
 facility, the name of the member formatted as a single column, and the cost.
 Order by descending cost, and do not use any subqueries. */
 
-SELECT DISTINCT f.name AS facility, CONCAT(m.firstname, ' ', m.surname) AS name, CONCAT(f.membercost,'/', f.guestcost) AS cost
-FROM Bookings AS b
-INNER JOIN Facilities AS f
-ON b.facid = f.facid
-INNER JOIN Members AS m
-ON b.memid = m.memid
-WHERE b.starttime like '2012-09-14%' AND (f.guestcost > 30 OR f.membercost > 30)
-ORDER BY cost DESC;
+SELECT f.name AS Facility, CONCAT(m.firstname, ' ', m.surname) AS Name, CONCAT(f.membercost,'/', f.guestcost) AS cost
+	FROM Bookings AS b
+	INNER JOIN Facilities AS f
+	ON b.facid= f.facid
+	INNER JOIN Members AS m
+     ON b.memid = m.memid WHERE b.starttime LIKE '2012-09-14%' AND (f.membercost > 30 OR f.guestcost > 30)
+GROUP BY Cost DESC
+
 
 
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
