@@ -1,32 +1,40 @@
 
 
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* QUESTIONS
 /* Q1: Some of the facilities charge a fee to members, but some do not.
 Write a SQL query to produce a list of the names of the facilities that do. */
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT name
 FROM `Facilities`
 WHERE membercost >0
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q2: How many facilities do not charge a fee to members? */
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT COUNT(name)
 FROM `Facilities`
 WHERE membercost = 0
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q3: Write an SQL query to show a list of facilities that charge a fee to members,
 where the fee is less than 20% of the facility's monthly maintenance cost.
 Return the facid, facility name, member cost, and monthly maintenance of the
 facilities in question. */
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT facid, name, membercost, monthlymaintenance
 FROM Facilities
 WHERE membercost > (monthlymaintenance*0.20)
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q4: Write an SQL query to retrieve the details of facilities with ID 1 and 5.
 Try writing the query without using the OR operator. */
-#<codecell>
+#<codecell>____________________________________________________________________
+
 
 CASE facid
 WHEN 1 THEN 1
@@ -34,13 +42,15 @@ WHEN 2 THEN 2
 END
 FROM Facilities
 
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q5: Produce a list of facilities, with each labelled as
 'cheap' or 'expensive', depending on if their monthly maintenance cost is
 more than $100. Return the name and monthly maintenance of the facilities
 in question. */
 
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT name, monthlymaintenance,
 CASE
 	WHEN monthlymaintenance < 100 THEN 'cheap'
@@ -48,22 +58,26 @@ CASE
 	END AS CostType
 FROM Facilities
 
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q6: You'd like to get the first and last name of the last member(s)
 who signed up. Try not to use the LIMIT clause for your solution. */
 
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT firstname, surname
 FROM `Members`
 WHERE YEAR(joindate) >= 2012 AND MONTH(joindate) >= 9 AND DAY(joindate) >= 25;
 
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q7: Produce a list of all members who have used a tennis court.
 Include in your output the name of the court, and the name of the member
 formatted as a single column. Ensure no duplicate data, and order by
 the member name. */
 
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT DISTINCT CONCAT(m.firstname,' ', m.surname,' ', f.name )
 FROM Bookings AS b
 LEFT JOIN Facilities AS f
@@ -73,7 +87,8 @@ ON b.memid = m.memid
 WHERE f.name LIKE 'Tennis Court%'
 ORDER BY m.surname
 
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q8: Produce a list of bookings on the day of 2012-09-14 which
 will cost the member (or guest) more than $30. Remember that guests have
 different costs to members (the listed costs are per half-hour 'slot'), and
@@ -81,7 +96,8 @@ the guest user's ID is always 0. Include in your output the name of the
 facility, the name of the member formatted as a single column, and the cost.
 Order by descending cost, and do not use any subqueries. */
 
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT f.name AS Facility, CONCAT(m.firstname, ' ', m.surname) AS Name, CONCAT(f.membercost,'/', f.guestcost) AS cost
 	FROM Bookings AS b
 	INNER JOIN Facilities AS f
@@ -91,10 +107,12 @@ SELECT f.name AS Facility, CONCAT(m.firstname, ' ', m.surname) AS Name, CONCAT(f
 GROUP BY Cost DESC
 
 
-#<markdown>
+#<markdown>____________________________________________________________________
+
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
 
-#<codecell>
+#<codecell>____________________________________________________________________
+
 SELECT * FROM
 (SELECT f.name AS Facility, CONCAT(m.firstname, ' ', m.surname) AS Name, f.membercost AS Cost
 	FROM Bookings AS b
@@ -113,11 +131,13 @@ SELECT f.name AS Facility, CONCAT(m.firstname, ' ', m.surname) AS Name, f.guestc
 WHERE df.Cost > 30
 GROUP BY df.Cost DESC;
 #<markdown>____________________________________________________________________
+____________________________________________________________________
 /* PART 2: SQLite
 
 Export the country club data from PHPMyAdmin, and connect to a local SQLite instance from Jupyter notebook
 for the following questions.
 #<codecell>____________________________________________________________________
+____________________________________________________________________
 import pandas as pd
 import sqlite3
 path = 'data/'
@@ -129,11 +149,13 @@ def query(query, file, path=''):
 		query = cursor.execute(query)
 		return pd.DataFrame(query)
 #<markdown>____________________________________________________________________
+____________________________________________________________________
 QUESTIONS:
 /* Q10: Produce a list of facilities with a total revenue less than 1000.
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
 #<codecell>____________________________________________________________________
+____________________________________________________________________
 df = query(("""
 SELECT facility, SUM(cost) FROM (
 	SELECT f.name AS facility, SUM(f.membercost) AS cost
@@ -157,8 +179,10 @@ df.columns = ['Facility', 'Revenue']
 df
 
 #<markdown>____________________________________________________________________
+____________________________________________________________________
 /* Q11: Produce a report of members and who recommended them in alphabetic surname,firstname order */
 #<codecell>____________________________________________________________________
+____________________________________________________________________
 df = query("""
 SELECT m.surname, m.firstname, (r.surname || ' ' || r.firstname)
 FROM Members AS m
@@ -169,7 +193,42 @@ ORDER BY m.surname, m.firstname;
 df.columns = ['LastName', 'FirstName', 'RecommendedBy']
 df
 #<markdown>____________________________________________________________________
+____________________________________________________________________
 /* Q12: Find the facilities with their usage by member, but not guests */
-
-
+#<codecell>____________________________________________________________________
+____________________________________________________________________
+df = query("""
+SELECT f.name AS facility, sub.usage AS usage
+FROM Facilities AS f
+JOIN (SELECT facid, COUNT(memid) AS usage
+FROM Bookings
+GROUP BY facid) AS sub
+ON f.facid = sub.facid
+ORDER by usage DESC
+;""", file, path=path)
+df.columns = ['Facility', 'UsageByMember']
+df
+#<markdown>____________________________________________________________________
+____________________________________________________________________
 /* Q13: Find the facilities usage by month, but not guests */
+#<codecell>____________________________________________________________________
+____________________________________________________________________
+df = query("""
+SELECT f.name AS facility, sub.usage AS usage
+FROM Facilities AS f
+JOIN (SELECT facid, STRFTIME('%m', starttime) AS usage
+FROM Bookings
+WHERE memid != 0) AS sub
+ON f.facid = sub.facid
+ORDER by usage DESC
+;""", file, path=path)
+df.columns = ['Facility', 'UsageByMonth']
+
+facs = list(df.set_index('Facility').index.unique())
+d = {}
+for fac in facs:
+	d[fac] = df[df['Facility'] == fac].count()
+df = pd.DataFrame(d)
+df = df.transpose()
+del df['Facility']
+df
